@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaServe - System Documentation</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #fff;
+    color: #000;
+    line-height: 1.6;
+    padding: 20px;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 10px;
+    border-bottom: 3px solid #000;
+    padding-bottom: 10px;
+}
+h2 {
+    font-size: 1.4rem;
+    margin-top: 40px;
+    margin-bottom: 15px;
+    border-left: 5px solid #000;
+    padding-left: 12px;
+}
+h3 {
+    font-size: 1.1rem;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+.section {
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+.mermaid {
+    display: flex;
+    justify-content: center;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+table th, table td {
+    border: 1px solid #000;
+    padding: 8px 12px;
+    text-align: left;
+}
+table th {
+    background: #000;
+    color: #fff;
+    font-weight: 600;
+}
+table tr:nth-child(even) {
+    background: #f5f5f5;
+}
+.desc {
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>AquaServe: Modern Water Station System with Rewards Management</h1>
+<p style="text-align:center; margin-bottom:30px; color:#555;">Complete System Documentation - Use Case, Activity, Sequence, Class, Deployment, ERD, and Data Dictionary</p>
+
+<!-- USE CASE DIAGRAM -->
+<h2>1. Use Case Diagram</h2>
+<div class="section">
+    <p class="desc">Illustrates the interactions between actors (Client, Staff, Admin) and system functionalities.</p>
+    <div class="mermaid">
+graph LR
+    subgraph Actors
+        A[Admin]
+        S[Staff]
+        C[Client]
+    end
+
+    subgraph Authentication
+        UC1[Login]
+        UC2[Register]
+        UC3[Logout]
+    end
+
+    subgraph AdminModule
+        UC4[Manage User Accounts]
+        UC5[Manage Products]
+        UC6[Update Inventory]
+        UC7[Manage Rewards]
+        UC8[Generate Reports]
+        UC9[Monitor Station Activity]
+    end
+
+    subgraph StaffModule
+        UC10[Process Customer Transactions]
+        UC11[Place Orders]
+        UC12[Monitor Station Activity]
+    end
+
+    subgraph ClientModule
+        UC13[Place Water Orders]
+        UC14[Track Water Usage]
+        UC15[View Rewards]
+        UC16[Redeem Points]
+        UC17[Receive Notifications]
+    end
+
+    A --> UC1
+    A --> UC2
+    A --> UC3
+    A --> UC4
+    A --> UC5
+    A --> UC6
+    A --> UC7
+    A --> UC8
+    A --> UC9
+
+    S --> UC1
+    S --> UC3
+    S --> UC10
+    S --> UC11
+    S --> UC12
+
+    C --> UC1
+    C --> UC2
+    C --> UC3
+    C --> UC13
+    C --> UC14
+    C --> UC15
+    C --> UC16
+    C --> UC17
+    </div>
+</div>
+
+<!-- ACTIVITY DIAGRAM -->
+<h2>2. Activity Diagram - Water Dispensing & Rewards Process</h2>
+<div class="section">
+    <p class="desc">Shows the workflow from user login to water dispensing and reward point accrual.</p>
+    <div class="mermaid">
+graph TD
+    A([Start]) --> B{Client Login}
+    B -->|Invalid| B
+    B -->|Valid| C[Display Dashboard]
+    C --> D{Select Action}
+
+    D -->|Dispense Water| E[Scan QR/RFID]
+    E --> F[Authenticate User]
+    F --> G[Activate IoT Dispenser]
+    G --> H[Measure Water Flow]
+    H --> I[Record Consumption]
+    I --> J[Calculate Points Earned]
+    J --> K[Update Reward Balance]
+    K --> L[Display Confirmation]
+
+    D -->|Place Order| M[Select Product]
+    M --> N[Enter Quantity]
+    N --> O[Confirm Order]
+    O --> P[Process Transaction]
+    P --> Q[Update Inventory]
+    Q --> R[Add Loyalty Points]
+
+    D -->|Redeem Rewards| S[View Available Rewards]
+    S --> T{Enough Points?}
+    T -->|No| U[Show Insufficient Points]
+    T -->|Yes| V[Confirm Redemption]
+    V --> W[Deduct Points]
+    W --> X[Apply Reward]
+
+    L --> Y([End])
+    R --> Y
+    X --> Y
+    U --> Y
+    </div>
+</div>
+
+<!-- SEQUENCE DIAGRAM -->
+<h2>3. Sequence Diagram - Login & Order Placement</h2>
+<div class="section">
+    <p class="desc">Depicts the interaction sequence between Customer, Web Interface, System Server, and Database.</p>
+    <div class="mermaid">
+sequenceDiagram
+    actor C as Customer
+    participant W as Web Interface
+    participant S as System Server
+    participant D as Database
+
+    C->>W: Enter Login Credentials
+    W->>S: POST login request
+    S->>D: SELECT user credentials
+    D-->>S: Return user data
+    S-->>W: Authentication result
+    W-->>C: Display Dashboard
+
+    C->>W: Place Water Order
+    W->>S: POST order details
+    S->>D: INSERT INTO Orders
+    D-->>S: Order created
+    S->>D: UPDATE Inventory
+    S->>D: UPDATE Rewards (add points)
+    D-->>S: Points updated
+    S-->>W: Order confirmation
+    W-->>C: Show success message
+
+    C->>W: View Rewards
+    W->>S: GET reward points
+    S->>D: SELECT reward balance
+    D-->>S: Return points data
+    S-->>W: Display rewards
+    W-->>C: Show loyalty status
+
+    C->>W: Redeem Points
+    W->>S: POST redemption request
+    S->>D: VERIFY points balance
+    D-->>S: Balance confirmed
+    S->>D: UPDATE Rewards (deduct)
+    D-->>S: Redemption recorded
+    S-->>W: Redemption success
+    W-->>C: Show updated balance
+    </div>
+</div>
+
+<!-- CLASS DIAGRAM -->
+<h2>4. Class Diagram</h2>
+<div class="section">
+    <p class="desc">Represents the main classes, attributes, methods, and relationships within the AquaServe system.</p>
+    <div class="mermaid">
+classDiagram
+    class User {
+        +int userID
+        +string username
+        +string password
+        +string email
+        +string role
+        +login()
+        +logout()
+        +register()
+    }
+
+    class Customer {
+        +int customerID
+        +int loyaltyPoints
+        +string purchaseHistory
+        +placeOrder()
+        +viewRewards()
+        +redeemPoints()
+        +trackUsage()
+    }
+
+    class Administrator {
+        +int adminID
+        +manageProducts()
+        +updateInventory()
+        +manageRewards()
+        +generateReports()
+        +manageUsers()
+    }
+
+    class Product {
+        +int productID
+        +string productName
+        +decimal price
+        +int stockQuantity
+        +updateStock()
+        +updatePrice()
+    }
+
+    class Order {
+        +int orderID
+        +date orderDate
+        +decimal totalAmount
+        +string orderStatus
+        +createOrder()
+        +updateOrderStatus()
+        +calculateTotal()
+    }
+
+    class Purchase {
+        +int purchaseID
+        +Product product
+        +int quantity
+        +decimal subtotal
+        +calculateSubtotal()
+    }
+
+    class Reward {
+        +int rewardID
+        +string rewardName
+        +int pointsRequired
+        +string rewardDescription
+        +redeemReward()
+        +updateReward()
+    }
+
+    class WaterStation {
+        +int stationID
+        +string location
+        +boolean status
+        +dispenseWater()
+        +recordUsage()
+    }
+
+    class Report {
+        +int reportID
+        +date generatedDate
+        +string reportType
+        +generateReport()
+        +exportData()
+    }
+
+    User <|-- Customer : inherits
+    User <|-- Administrator : inherits
+    User <|-- Staff : inherits
+
+    Customer "1" --> "0..*" Order : places
+    Order "1" --> "1..*" Purchase : contains
+    Purchase "1" --> "1" Product : references
+    Customer "1" --> "0..*" Reward : redeems
+    Administrator "1" --> "0..*" Product : manages
+    Administrator "1" --> "0..*" Report : generates
+    Customer "1" --> "0..*" WaterStation : uses
+    Order "1" --> "0..*" Reward : applies
+    </div>
+</div>
+
+<!-- DEPLOYMENT DIAGRAM -->
+<h2>5. Deployment Diagram</h2>
+<div class="section">
+    <p class="desc">Shows the physical deployment architecture of the AquaServe System with IoT integration.</p>
+    <div class="mermaid">
+graph TB
+    subgraph ClientLayer
+        C1[Smartphone / Tablet<br/>Mobile App]
+        C2[Computer<br/>Web Browser]
+    end
+
+    subgraph NetworkLayer
+        NET[Internet / Wi-Fi]
+    end
+
+    subgraph ServerLayer
+        WS[Web Server<br/>Apache / Nginx]
+        AS[Application Server<br/>PHP / RESTful API]
+    end
+
+    subgraph DataLayer
+        DB[Database Server<br/>MySQL / PostgreSQL]
+        DS[Database Storage<br/>water_refill]
+    end
+
+    subgraph IoTLayer
+        IOT1[IoT Water Station<br/>Dispenser + Sensors]
+        IOT2[QR / RFID Scanner]
+        IOT3[Wi-Fi / GSM Module]
+    end
+
+    C1 -->|HTTP Request| NET
+    C2 -->|HTTP Request| NET
+    NET --> WS
+    WS --> AS
+    AS -->|PDO / SQL| DB
+    DB --> DS
+
+    IOT1 -->|Sensor Data| IOT3
+    IOT2 -->|Auth Data| IOT3
+    IOT3 -->|Real-time Data| AS
+    AS -->|Control Signal| IOT3
+    </div>
+</div>
+
+<!-- ERD DIAGRAM -->
+<h2>6. Entity Relationship Diagram (ERD)</h2>
+<div class="section">
+    <p class="desc">Illustrates the database schema and relationships between entities.</p>
+    <div class="mermaid">
+erDiagram
+    TB_USERS {
+        int userID PK
+        enum role
+        varchar username
+        varchar email UK
+        varchar password
+        varchar contact
+        timestamp created_at
+    }
+
+    TB_CUSTOMERS {
+        int customerID PK,FK
+        int loyaltyPoints
+        text purchaseHistory
+    }
+
+    TB_ADMINISTRATORS {
+        int adminID PK,FK
+        varchar adminLevel
+    }
+
+    TB_PRODUCTS {
+        int productID PK
+        varchar productName
+        decimal price
+        int stockQuantity
+        text description
+    }
+
+    TB_ORDERS {
+        int orderID PK
+        int customerID FK
+        date orderDate
+        decimal totalAmount
+        enum orderStatus
+        text deliveryAddress
+    }
+
+    TB_PURCHASES {
+        int purchaseID PK
+        int orderID FK
+        int productID FK
+        int quantity
+        decimal subtotal
+    }
+
+    TB_REWARDS {
+        int rewardID PK
+        int customerID FK
+        int pointsRequired
+        varchar rewardName
+        text rewardDescription
+        timestamp redeemed_at
+    }
+
+    TB_WATER_STATIONS {
+        int stationID PK
+        varchar location
+        enum status
+        float totalDispensed
+    }
+
+    TB_REPORTS {
+        int reportID PK
+        int adminID FK
+        varchar reportType
+        date generatedDate
+        text reportData
+    }
+
+    TB_USERS ||--o| TB_CUSTOMERS : "is a"
+    TB_USERS ||--o| TB_ADMINISTRATORS : "is a"
+    TB_CUSTOMERS ||--o{ TB_ORDERS : "places"
+    TB_ORDERS ||--|{ TB_PURCHASES : "contains"
+    TB_PRODUCTS ||--o{ TB_PURCHASES : "referenced by"
+    TB_CUSTOMERS ||--o{ TB_REWARDS : "redeems"
+    TB_ADMINISTRATORS ||--o{ TB_PRODUCTS : "manages"
+    TB_ADMINISTRATORS ||--o{ TB_REPORTS : "generates"
+    TB_CUSTOMERS ||--o{ TB_WATER_STATIONS : "uses"
+    </div>
+</div>
+
+<!-- DATA DICTIONARY -->
+<h2>7. Data Dictionary</h2>
+<div class="section">
+    <p class="desc">Comprehensive description of all database tables, columns, data types, and constraints.</p>
+
+    <h3>Table: tb_users</h3>
+    <table>
+        <tr><th>Column</th><th>Data Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td>userID</td><td>INT</td><td>PK, Auto Increment</td><td>Unique identifier for each user</td></tr>
+        <tr><td>role</td><td>ENUM</td><td>NOT NULL</td><td>User role: customer, staff, or admin</td></tr>
+        <tr><td>username</td><td>VARCHAR(50)</td><td>NOT NULL</td><td>Username for login</td></tr>
+        <tr><td>email</td><td>VARCHAR(100)</td><td>UNIQUE, NOT NULL</td><td>Email address for authentication</td></tr>
+        <tr><td>password</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Hashed password</td></tr>
+        <tr><td>contact</td><td>VARCHAR(20)</td><td>NULL</td><td>Contact phone number</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP</td><td>DEFAULT CURRENT_TIMESTAMP</td><td>Account creation date</td></tr>
+    </table>
+
+    <h3>Table: tb_customers</h3>
+    <table>
+        <tr><th>Column</th><th>Data Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td>customerID</td><td>INT</td><td>PK, FK → tb_users.userID</td><td>Links to user record</td></tr>
+        <tr><td>loyaltyPoints</td><td>INT</td><td>DEFAULT 0</td><td>Accumulated reward points</td></tr>
+        <tr><td>purchaseHistory</td><td>TEXT</td><td>NULL</td><td>JSON or text of past purchases</td></tr>
+    </table>
+
+    <h3>Table: tb_administrators</h3>
+    <table>
+        <tr><th>Column</th><th>Data Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td>adminID</td><td>INT</td><td>PK, FK → tb_users.userID</td><td>Links to user record</td></tr>
+        <tr><td>adminLevel</td><td>VARCHAR(20)</td><td>DEFAULT 'standard'</td><td>Admin privilege level</td></tr>
+    </table>
+
+    <h3>Table: tb_products</h3>
+    <table>
+        <tr><th>Column</th><th>Data Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td>productID</td><td>INT</td><td>PK, Auto Increment</td><td>Unique product identifier</td></tr>
+        <tr><td>productName</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Name of water product</td></tr>
+        <tr><td>price</td><td>DECIMAL(10,2)</td><td>NOT NULL</td><td>Price per unit</td></tr>
+        <tr><td>stockQuantity</td><td>INT</td><td>DEFAULT 0</td><td>Available stock count</td></tr>
+        <tr><td>description</td><td>TEXT</td><td>NULL</td><td>Product description</td></tr>
+    </table>
+
+    <h3>Table: tb_orders</h3>
+    <table>
+        <tr><th>Column</th><th>Data Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td>orderID</td><td>INT</td><td>PK, Auto Increment</td><td>Unique order identifier</td></tr>
+        <tr><td>customerID</td><td>INT</td><td>FK → tb_customers.customerID</td><td>Customer who placed order</td></tr>
+        <tr><td>orderDate</td><td>DATE</td><td>NOT NULL</td><td>Date order was placed</td></tr>
+        <tr><td>totalAmount</td><td>DECIMAL(10,2)</td><td>NOT NULL</td><td>Total price of order</td></tr>
+        <tr><td>orderStatus</td><td>ENUM</td><td>DEFAULT 'Pending'</td><td>Pending, Confirmed, Completed, Cancelled</td></tr>
+        <tr><td>deliveryAddress</td><td>TEXT</td><td>NULL</td><td>Delivery location</td></tr>
+    </table>
+
+    <h3>Table: tb_purchases</h3>
+    <table>
+        <tr><th>Column</th><th>Data Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td>purchaseID</td><td>INT</td><td>PK, Auto Increment</td><td>Unique purchase record ID</td></tr>
+        <tr><td>orderID</td><td>INT</td><td>FK → tb_orders.orderID</td><td>Parent order reference</td></tr>
+        <tr><td>productID</td><td>INT</td><td>FK → tb_products.productID</td><td>Product purchased</td></tr>
+        <tr><td>quantity</td><td>INT</td><td>NOT NULL</td><td>Units purchased</td></tr>
+        <tr><td>subtotal</td><td>DECIMAL(10,2)</td><td>NOT NULL</td><td>Quantity × Price</td></tr>
+    </table>
+
+    <h3>Table: tb_rewards</h3>
+    <table>
+        <tr><th>Column</th><th>Data Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td>rewardID</td><td>INT</td><td>PK, Auto Increment</td><td>Unique reward record ID</td></tr>
+        <tr><td>customerID</td><td>INT</td><td>FK → tb_customers.customerID</td><td>Reward owner</td></tr>
+        <tr><td>pointsRequired</td><td>INT</td><td>NOT NULL</td><td>Points needed for reward</td></tr>
+        <tr><td>rewardName</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Name of reward item</td></tr>
+        <tr><td>rewardDescription</td><td>TEXT</td><td>NULL</td><td>Reward details</td></tr>
+        <tr><td>redeemed_at</td><td>TIMESTAMP</td><td>NULL</td><td>Redemption timestamp</td></tr>
+    </table>
+
+    <h3>Table: tb_water_stations</h3>
+    <table>
+        <tr><th>Column</th><th>Data Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td>stationID</td><td>INT</td><td>PK, Auto Increment</td><td>Unique station identifier</td></tr>
+        <tr><td>location</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Physical station address</td></tr>
+        <tr><td>status</td><td>ENUM</td><td>DEFAULT 'active'</td><td>active, maintenance, offline</td></tr>
+        <tr><td>totalDispensed</td><td>FLOAT</td><td>DEFAULT 0</td><td>Cumulative water dispensed (liters)</td></tr>
+    </table>
+
+    <h3>Table: tb_reports</h3>
+    <table>
+        <tr><th>Column</th><th>Data Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td>reportID</td><td>INT</td><td>PK, Auto Increment</td><td>Unique report identifier</td></tr>
+        <tr><td>adminID</td><td>INT</td><td>FK → tb_administrators.adminID</td><td>Report generator</td></tr>
+        <tr><td>reportType</td><td>VARCHAR(50)</td><td>NOT NULL</td><td>sales, usage, rewards, inventory</td></tr>
+        <tr><td>generatedDate</td><td>DATE</td><td>NOT NULL</td><td>Report creation date</td></tr>
+        <tr><td>reportData</td><td>TEXT</td><td>NULL</td><td>JSON or formatted report content</td></tr>
+    </table>
+</div>
+
+</div>
+
+<script>
+mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+        primaryColor: '#fff',
+        primaryTextColor: '#000',
+        primaryBorderColor: '#000',
+        lineColor: '#000',
+        secondaryColor: '#f5f5f5',
+        tertiaryColor: '#fff',
+        fontFamily: 'Segoe UI, sans-serif',
+        fontSize: '14px'
+    },
+    flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+    },
+    sequence: {
+        useMaxWidth: true,
+        diagramMarginX: 20,
+        diagramMarginY: 20
+    },
+    er: {
+        useMaxWidth: true
+    }
+});
+</script>
+
+</body>
+</html>
